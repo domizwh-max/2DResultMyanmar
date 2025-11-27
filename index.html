@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Status Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap" rel="stylesheet">
+    <script src="data/market-history.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -691,7 +692,7 @@
         }
         
         // History data storage
-        let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || {};
+        let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || (typeof window.marketHistoryData !== 'undefined' ? window.marketHistoryData : {});
         
         // If no history data exists, initialize with sample data
         if (Object.keys(historyData).length === 0) {
