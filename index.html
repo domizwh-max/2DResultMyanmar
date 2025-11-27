@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Status Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap" rel="stylesheet">
-    <script src="data/market-history.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -330,7 +329,7 @@
         <!-- Modern Internet Boxes -->
         <div class="row" style="margin-top: 10px;">
             <div class="col-md-2"></div>
-            <div class="col-md-8 col-12">
+            <div class="col-md-4 col-12">
                 <div class="feature-card" style="background-color: #b1e1e3; box-shadow: none;">
                     <table border="0" style="border-collapse: collapse; width: 100%; height: auto;">
                         <tbody>
@@ -340,18 +339,14 @@
                                 <td style="width: 33%;" class="modIntS">Internet</td>
                             </tr>
                             <tr>
-                                <td style="width: 33%;" class="modIntV">49</td>
-                                <td style="width: 33%;" class="modIntV">83</td>
+                                <td style="width: 33%;" class="modIntV" id="modernData1">--</td>
+                                <td style="width: 33%;" class="modIntV" id="internetData1">--</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="col-md-2"></div>
-        </div>
-        <div class="row" style="margin-top: 10px;">
-            <div class="col-md-2"></div>
-            <div class="col-md-8 col-12">
+            <div class="col-md-4 col-12">
                 <div class="feature-card" style="background-color: #b1e1e3; box-shadow: none;">
                     <table border="0" style="border-collapse: collapse; width: 100%; height: auto;">
                         <tbody>
@@ -361,8 +356,8 @@
                                 <td style="width: 33%;" class="modIntS">Internet</td>
                             </tr>
                             <tr>
-                                <td style="width: 33%;" class="modIntV">93</td>
-                                <td style="width: 33%;" class="modIntV">83</td>
+                                <td style="width: 33%;" class="modIntV" id="modernData2">--</td>
+                                <td style="width: 33%;" class="modIntV" id="internetData2">--</td>
                             </tr>
                         </tbody>
                     </table>
@@ -370,7 +365,7 @@
             </div>
             <div class="col-md-2"></div>
         </div>
-        
+
         <!-- Holiday Section -->
         <div class="holiday-section">
             <button class="holiday-button" onclick="openHolidayPopup()" style="display: block; margin: 20px auto;">Holiday Calendar</button>
@@ -508,6 +503,10 @@
         const setFixData2El = document.getElementById('setFixData2');
         const valueFixData2El = document.getElementById('valueFixData2');
         const twodFixData2El = document.getElementById('twodFixData2');
+        const modernData1El = document.getElementById('modernData1');
+        const internetData1El = document.getElementById('internetData1');
+        const modernData2El = document.getElementById('modernData2');
+        const internetData2El = document.getElementById('internetData2');
         const holidayPopupEl = document.getElementById('holidayPopup');
         const historyPopupEl = document.getElementById('historyPopup');
         const historyContentEl = document.getElementById('historyContent');
@@ -550,6 +549,51 @@
         function isHoliday(date) {
             const dateString = date.toISOString().split('T')[0];
             return holidays.includes(dateString);
+        }
+        
+        // Track if reset has been performed today
+        let resetPerformedToday = false;
+        
+        // Check if it's 7:00 AM on a weekday and reset hasn't been performed yet
+        function isResetTime(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const day = date.getDay();
+            
+            // Check if it's 7:00 AM, a weekday (Monday-Friday), and reset hasn't been done today
+            if (hours === 7 && minutes === 0 && day >= 1 && day <= 5 && !resetPerformedToday) {
+                resetPerformedToday = true;
+                return true;
+            }
+            
+            // Reset the flag at 7:01 AM so it can trigger again tomorrow
+            if (hours === 7 && minutes === 1) {
+                resetPerformedToday = false;
+            }
+            
+            return false;
+        }
+        
+        // Reset all display data to "--"
+        function resetDisplayData() {
+            // Reset main display data
+            setDataEl.textContent = "--";
+            valueDataEl.textContent = "--";
+            
+            // Reset top number
+            topNumberEl.textContent = "--";
+            
+            // Reset timeslot cards
+            setFixData1El.textContent = "--";
+            valueFixData1El.textContent = "--";
+            twodFixData1El.textContent = "--";
+            setFixData2El.textContent = "--";
+            valueFixData2El.textContent = "--";
+            twodFixData2El.textContent = "--";
+            
+            // Update timestamp
+            const formattedDate = formatDate(new Date());
+            timestampEl.textContent = `${formattedDate} at 07:00:00 --`;
         }
         
         // Get current time in decimal hours (e.g., 9.5 for 9:30 AM)
@@ -625,6 +669,97 @@
             topNumberEl.textContent = lastDigit + secondDigit;
         }
         
+        // Check if it's time to show "--" before capture for 12:01 PM card
+        function isBefore1201Capture(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            
+            // Before 12:01 PM (from market open at 9:30 AM until just before 12:01 PM)
+            const currentTime = getCurrentTimeDecimal(date);
+            const captureTime = 12.0167; // 12:01 PM
+            
+            return currentTime >= marketHours.morning.start && currentTime < captureTime;
+        }
+        
+        // Check if it's time to show "--" before capture for 4:30 PM card
+        function isBefore1630Capture(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            
+            // Before 4:30 PM (from market open at 9:30 AM until just before 4:30 PM)
+            const currentTime = getCurrentTimeDecimal(date);
+            const captureTime = 16.5; // 4:30 PM
+            
+            // Show "--" from market open (9:30 AM) until 4:30 PM capture time
+            return currentTime >= marketHours.morning.start && currentTime < captureTime;
+        }
+        
+        // Check if it's time to fetch data for Modern Internet cards
+        function shouldFetchModernData(date) {
+            const currentTime = getCurrentTimeDecimal(date);
+            
+            // Fetch data during market hours:
+            // 1. 9:30 AM to 12:01 PM for first card
+            // 2. 2:00 PM to 4:30 PM for second card
+            const isFirstSession = currentTime >= marketHours.morning.start && currentTime < marketHours.morning.end;
+            const isSecondSession = currentTime >= marketHours.afternoon.start && currentTime < marketHours.afternoon.end;
+            
+            return isFirstSession || isSecondSession;
+        }
+        
+        // Fetch real data for Modern Internet cards from mylucky2d3d.com
+        function fetchModernData() {
+            const now = new Date();
+            const currentTime = getCurrentTimeDecimal(now);
+            
+            // For first card (9:30 AM - 12:01 PM)
+            if (currentTime >= marketHours.morning.start && currentTime < marketHours.morning.end) {
+                fetchModernInternetData(1);
+            }
+            
+            // For second card (2:00 PM - 4:30 PM)
+            if (currentTime >= marketHours.afternoon.start && currentTime < marketHours.afternoon.end) {
+                fetchModernInternetData(2);
+            }
+        }
+        
+        // Fetch Modern Internet data - fetches from generated data file
+        function fetchModernInternetData(cardNumber) {
+            // Fetch from the data file generated by the backend script
+            fetch('data/modern-internet-data.json')
+                .then(response => response.json())
+                .then(data => {
+                    if (cardNumber === 1) {
+                        // Find the 9:30 AM card data
+                        const cardData = data.cards.find(card => card.time === '9:30 AM');
+                        if (cardData) {
+                            // Check if data is available or show "--"
+                            modernData1El.textContent = cardData.modern;
+                            internetData1El.textContent = cardData.internet;
+                        }
+                    } else if (cardNumber === 2) {
+                        // Find the 2:00 PM card data
+                        const cardData = data.cards.find(card => card.time === '2:00 PM');
+                        if (cardData) {
+                            // Check if data is available or show "--"
+                            modernData2El.textContent = cardData.modern;
+                            internetData2El.textContent = cardData.internet;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching Modern Internet data:', error);
+                    // Show "--" on error
+                    if (cardNumber === 1) {
+                        modernData1El.textContent = "--";
+                        internetData1El.textContent = "--";
+                    } else if (cardNumber === 2) {
+                        modernData2El.textContent = "--";
+                        internetData2El.textContent = "--";
+                    }
+                });
+        }
+
         // Update display based on market status
         function updateDisplayData(status) {
             const now = new Date();
@@ -644,6 +779,36 @@
                 const formattedDate = formatDate(now);
                 const formattedTime = formatTime(now);
                 timestampEl.textContent = `${formattedDate} at ${formattedTime}`;
+                
+                // Handle timeslot cards before capture time
+                if (isBefore1201Capture(now)) {
+                    // Show "--" in 12:01 PM card before capture
+                    setFixData1El.textContent = "--";
+                    valueFixData1El.textContent = "--";
+                    twodFixData1El.textContent = "--";
+                } else {
+                    // Show normal data in 12:01 PM card
+                    setFixData1El.textContent = "1,261.23";
+                    valueFixData1El.textContent = "13,522.14";
+                    twodFixData1El.textContent = "32";
+                }
+                
+                if (isBefore1630Capture(now)) {
+                    // Show "--" in 4:30 PM card before capture
+                    setFixData2El.textContent = "--";
+                    valueFixData2El.textContent = "--";
+                    twodFixData2El.textContent = "--";
+                } else {
+                    // Show normal data in 4:30 PM card
+                    setFixData2El.textContent = "1,252.71";
+                    valueFixData2El.textContent = "23,180.98";
+                    twodFixData2El.textContent = "10";
+                }
+                
+                // Fetch data for Modern Internet cards during market hours
+                if (shouldFetchModernData(now)) {
+                    fetchModernData();
+                }
             } else if (status === 'break') {
                 // During market break, show data from 12:01PM timeslot card
                 const breakSetData = setFixData1El.textContent;
@@ -692,7 +857,7 @@
         }
         
         // History data storage
-        let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || (typeof window.marketHistoryData !== 'undefined' ? window.marketHistoryData : {});
+        let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || {};
         
         // If no history data exists, initialize with sample data
         if (Object.keys(historyData).length === 0) {
@@ -955,6 +1120,8 @@
         
         // Simulate data fetching (in a real app, this would fetch from APIs)
         function fetchData() {
+            const now = new Date();
+            
             // Simulated data - in a real implementation, you would fetch this from the actual sources
             const simulatedSetData = "1,291.46";
             const simulatedValueData = "33,202.91";
@@ -966,23 +1133,43 @@
             // Update top number
             updateTopNumber(simulatedSetData, simulatedValueData);
             
-            // Update 12:01 PM timeslot data
-            const amSetData = "1,261.23";
-            const amValueData = "13,522.14";
-            const amLuckyData = "32";
+            // Handle timeslot cards before capture time
+            if (isBefore1201Capture(now)) {
+                // Show "--" in 12:01 PM card before capture
+                setFixData1El.textContent = "--";
+                valueFixData1El.textContent = "--";
+                twodFixData1El.textContent = "--";
+            } else {
+                // Update 12:01 PM timeslot data
+                const amSetData = "1,261.23";
+                const amValueData = "13,522.14";
+                const amLuckyData = "32";
+                
+                setFixData1El.textContent = amSetData;
+                valueFixData1El.textContent = amValueData;
+                twodFixData1El.textContent = amLuckyData;
+            }
             
-            setFixData1El.textContent = amSetData;
-            valueFixData1El.textContent = amValueData;
-            twodFixData1El.textContent = amLuckyData;
+            if (isBefore1630Capture(now)) {
+                // Show "--" in 4:30 PM card before capture
+                setFixData2El.textContent = "--";
+                valueFixData2El.textContent = "--";
+                twodFixData2El.textContent = "--";
+            } else {
+                // Update 4:30 PM timeslot data
+                const pmSetData = "1,252.71";
+                const pmValueData = "23,180.98";
+                const pmLuckyData = "10";
+                
+                setFixData2El.textContent = pmSetData;
+                valueFixData2El.textContent = pmValueData;
+                twodFixData2El.textContent = pmLuckyData;
+            }
             
-            // Update 4:30 PM timeslot data
-            const pmSetData = "1,252.71";
-            const pmValueData = "23,180.98";
-            const pmLuckyData = "10";
-            
-            setFixData2El.textContent = pmSetData;
-            valueFixData2El.textContent = pmValueData;
-            twodFixData2El.textContent = pmLuckyData;
+            // Fetch data for Modern Internet cards during market hours
+            if (shouldFetchModernData(now)) {
+                fetchModernData();
+            }
             
             // Save data to history
             saveToHistory();
@@ -1019,6 +1206,12 @@
             const now = new Date();
             const status = getMarketStatus(now);
             
+            // Check if it's reset time (7:00 AM on weekdays)
+            if (isResetTime(now)) {
+                resetDisplayData();
+                return; // Skip normal update logic
+            }
+            
             // Update market status display
             updateMarketStatus(status);
             
@@ -1043,7 +1236,7 @@
             // Schedule daily data storage at 8:00 PM
             scheduleDailyStorage();
             
-            // Update every second to check market status changes
+            // Update every second to check market status changes and reset time
             setInterval(updateDisplay, 1000);
             
             // Update data every 5 seconds during open hours
