@@ -1,22 +1,60 @@
 const fs = require('fs');
 const path = require('path');
 
-// GitHub API update function
+// GitHub API update function using Node.js built-in https module
 async function updateFileViaGitHubAPI(filePath, content, token, repoOwner, repoName) {
+    const https = require('https');
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+    
+    // Promise wrapper for https requests
+    function httpsRequest(options, data) {
+        return new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                let responseBody = '';
+                
+                res.on('data', (chunk) => {
+                    responseBody += chunk;
+                });
+                
+                res.on('end', () => {
+                    resolve({
+                        statusCode: res.statusCode,
+                        headers: res.headers,
+                        body: responseBody
+                    });
+                });
+            });
+            
+            req.on('error', (err) => {
+                reject(err);
+            });
+            
+            if (data) {
+                req.write(data);
+            }
+            
+            req.end();
+        });
+    }
     
     // Get the current file SHA (needed for update)
     let sha = null;
     try {
-        const response = await fetch(url, {
+        const getOptions = {
+            hostname: 'api.github.com',
+            path: `/repos/${repoOwner}/${repoName}/contents/${filePath}`,
+            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Node.js'
             }
-        });
+        };
         
-        if (response.ok) {
-            const fileInfo = await response.json();
+        const response = await httpsRequest(getOptions);
+        
+        if (response.statusCode === 200) {
+            const fileInfo = JSON.parse(response.body);
             sha = fileInfo.sha;
         }
     } catch (error) {
@@ -24,25 +62,29 @@ async function updateFileViaGitHubAPI(filePath, content, token, repoOwner, repoN
     }
     
     // Update or create the file
-    const updateData = {
+    const updateData = JSON.stringify({
         message: 'chore: update market history data',
         content: Buffer.from(content).toString('base64'),
         sha: sha // null for new files
-    };
+    });
     
-    const response = await fetch(url, {
+    const putOptions = {
+        hostname: 'api.github.com',
+        path: `/repos/${repoOwner}/${repoName}/contents/${filePath}`,
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updateData)
-    });
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(updateData),
+            'User-Agent': 'Node.js'
+        }
+    };
     
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update ${filePath}: ${response.status} ${errorText}`);
+    const response = await httpsRequest(putOptions, updateData);
+    
+    if (response.statusCode !== 200 && response.statusCode !== 201) {
+        throw new Error(`Failed to update ${filePath}: ${response.statusCode} ${response.body}`);
     }
     
     console.log(`Successfully updated ${filePath}`);
