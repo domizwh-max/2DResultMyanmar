@@ -20,11 +20,6 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Install dependencies
-      run: |
-        npm init -y
-        npm install node-fetch
-        
     - name: Run data collection script
       run: node .github/scripts/update-market-data-api.js
       env:
