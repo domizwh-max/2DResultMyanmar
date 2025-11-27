@@ -1,20 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-// Function to fetch market data (replace with actual API calls)
-function fetchMarketData() {
-    // In a real implementation, you would fetch this data from SET
-    // For now, using sample data that matches your timeslot cards
-    return {
-        set1201: "1,261.23",
-        value1201: "13,522.14",
-        lucky1201: "32",
-        set1630: "1,252.71",
-        value1630: "23,180.98",
-        lucky1630: "10"
-    };
-}
-
 // Function to update history data in a separate JSON file
 function updateHistoryData() {
     try {
@@ -34,7 +20,7 @@ function updateHistoryData() {
         
         console.log('Today\'s date key:', dateKey);
         
-        // Create new history entry
+        // Create new history entry with your exact timeslot data
         const newEntry = {
             time: "20:00:00",
             set1201: "1,261.23",
