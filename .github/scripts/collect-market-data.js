@@ -129,61 +129,206 @@ async function updateHistoryData() {
             lucky1630: "10"
         };
         
-        // Look for the historyData initialization
-        const historyDataMatch = indexContent.match(/let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| ({[^}]*\}[^\}]*\}\);)/s);
+        // Try different patterns to find historyData initialization
+        let updated = false;
         
-        if (historyDataMatch) {
-            console.log('Found historyData initialization');
-            let historyData;
-            try {
-                const historyString = historyDataMatch[1].replace(/;$/, '');
-                historyData = JSON.parse(historyString);
-            } catch (e) {
-                console.log('Could not parse existing history data, starting fresh');
-                historyData = {};
+        // Pattern 1: Look for the sample data initialization function
+        if (indexContent.includes('initializeSampleHistoryData')) {
+            console.log('Found initializeSampleHistoryData function');
+            
+            // Extract the current history data from the function
+            const functionMatch = indexContent.match(/function initializeSampleHistoryData\(\)[\s\S]*?historyData = ({[\s\S]*?});/);
+            
+            if (functionMatch) {
+                console.log('Found historyData assignment in function');
+                let historyDataString = functionMatch[1];
+                
+                // Try to parse the history data
+                let historyData;
+                try {
+                    historyData = JSON.parse(historyDataString);
+                } catch (parseError) {
+                    console.log('Could not parse existing history data, starting fresh');
+                    historyData = {};
+                }
+                
+                // Add today's data
+                if (!historyData[dateKey]) {
+                    historyData[dateKey] = {
+                        date: dateKey,
+                        dayName: dayName,
+                        entries: []
+                    };
+                }
+                
+                // Add new entry
+                historyData[dateKey].entries.push(newEntry);
+                
+                // Keep only last 5 entries per day
+                if (historyData[dateKey].entries.length > 5) {
+                    historyData[dateKey].entries.shift();
+                }
+                
+                // Convert back to string
+                const newHistoryString = JSON.stringify(historyData, null, 4);
+                
+                // Replace in the index.html
+                const updatedContent = indexContent.replace(
+                    /historyData = {[\s\S]*?};/,
+                    `historyData = ${newHistoryString};`
+                );
+                
+                // Update file on GitHub
+                console.log(`Updating ${filePath} on GitHub`);
+                await updateFileOnGitHub(
+                    repoOwner, 
+                    repoName, 
+                    filePath, 
+                    updatedContent, 
+                    fileInfo.sha, 
+                    token, 
+                    "chore: update market history data"
+                );
+                
+                console.log(`Updated history data for ${dateKey}`);
+                updated = true;
             }
+        }
+        
+        // Pattern 2: If function not found, look for direct historyData initialization
+        if (!updated) {
+            console.log('Looking for direct historyData initialization');
+            const historyDataMatch = indexContent.match(/let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| ({[^}]*\}[^\}]*\};)/s);
             
-            // Add today's data
-            if (!historyData[dateKey]) {
-                historyData[dateKey] = {
-                    date: dateKey,
-                    dayName: dayName,
-                    entries: []
-                };
+            if (historyDataMatch) {
+                console.log('Found direct historyData initialization');
+                let historyData;
+                try {
+                    const historyString = historyDataMatch[1].replace(/;$/, '');
+                    historyData = JSON.parse(historyString);
+                } catch (e) {
+                    console.log('Could not parse existing history data, starting fresh');
+                    historyData = {};
+                }
+                
+                // Add today's data
+                if (!historyData[dateKey]) {
+                    historyData[dateKey] = {
+                        date: dateKey,
+                        dayName: dayName,
+                        entries: []
+                    };
+                }
+                
+                // Add new entry
+                historyData[dateKey].entries.push(newEntry);
+                
+                // Keep only last 5 entries per day
+                if (historyData[dateKey].entries.length > 5) {
+                    historyData[dateKey].entries.shift();
+                }
+                
+                // Convert back to string
+                const newHistoryString = JSON.stringify(historyData, null, 4);
+                
+                // Replace in the index.html
+                const updatedContent = indexContent.replace(
+                    /let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| {[^}]*\}[^\}]*\};/s,
+                    `let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || ${newHistoryString};`
+                );
+                
+                // Update file on GitHub
+                console.log(`Updating ${filePath} on GitHub`);
+                await updateFileOnGitHub(
+                    repoOwner, 
+                    repoName, 
+                    filePath, 
+                    updatedContent, 
+                    fileInfo.sha, 
+                    token, 
+                    "chore: update market history data"
+                );
+                
+                console.log(`Updated history data for ${dateKey}`);
+                updated = true;
             }
+        }
+        
+        // Pattern 3: If still not found, try a more general pattern
+        if (!updated) {
+            console.log('Trying general pattern matching');
+            const generalMatch = indexContent.match(/let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| ({.*?});/s);
             
-            // Add new entry
-            historyData[dateKey].entries.push(newEntry);
-            
-            // Keep only last 5 entries per day
-            if (historyData[dateKey].entries.length > 5) {
-                historyData[dateKey].entries.shift();
+            if (generalMatch) {
+                console.log('Found general historyData pattern');
+                let historyData;
+                try {
+                    const historyString = generalMatch[1];
+                    historyData = JSON.parse(historyString);
+                } catch (e) {
+                    console.log('Could not parse existing history data, starting fresh');
+                    historyData = {};
+                }
+                
+                // Add today's data
+                if (!historyData[dateKey]) {
+                    historyData[dateKey] = {
+                        date: dateKey,
+                        dayName: dayName,
+                        entries: [{
+                            time: "20:00:00",
+                            set1201: "1,261.23",
+                            value1201: "13,522.14",
+                            lucky1201: "32",
+                            set1630: "1,252.71",
+                            value1630: "23,180.98",
+                            lucky1630: "10"
+                        }]
+                    };
+                } else {
+                    historyData[dateKey].entries.push({
+                        time: "20:00:00",
+                        set1201: "1,261.23",
+                        value1201: "13,522.14",
+                        lucky1201: "32",
+                        set1630: "1,252.71",
+                        value1630: "23,180.98",
+                        lucky1630: "10"
+                    });
+                    
+                    // Keep only last 5 entries per day
+                    if (historyData[dateKey].entries.length > 5) {
+                        historyData[dateKey].entries.shift();
+                    }
+                }
+                
+                const newHistoryString = JSON.stringify(historyData, null, 4);
+                const updatedContent = indexContent.replace(
+                    /let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| {.*?};/s,
+                    `let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || ${newHistoryString};`
+                );
+                
+                // Update file on GitHub
+                console.log(`Updating ${filePath} on GitHub`);
+                await updateFileOnGitHub(
+                    repoOwner, 
+                    repoName, 
+                    filePath, 
+                    updatedContent, 
+                    fileInfo.sha, 
+                    token, 
+                    "chore: update market history data"
+                );
+                
+                console.log(`Updated history data for ${dateKey}`);
+                updated = true;
             }
-            
-            // Convert back to string
-            const newHistoryString = JSON.stringify(historyData, null, 4);
-            
-            // Replace in the index.html
-            const updatedContent = indexContent.replace(
-                /let historyData = JSON\.parse\(localStorage\.getItem\('marketHistoryData'\)\) \|\| {[^}]*\}[^\}]*\};/s,
-                `let historyData = JSON.parse(localStorage.getItem('marketHistoryData')) || ${newHistoryString};`
-            );
-            
-            // Update file on GitHub
-            console.log(`Updating ${filePath} on GitHub`);
-            await updateFileOnGitHub(
-                repoOwner, 
-                repoName, 
-                filePath, 
-                updatedContent, 
-                fileInfo.sha, 
-                token, 
-                "chore: update market history data"
-            );
-            
-            console.log(`Updated history data for ${dateKey}`);
-        } else {
-            console.log('Could not find historyData initialization');
+        }
+        
+        if (!updated) {
+            console.log('Could not find any historyData pattern to update');
+            console.log('First 1000 characters of index.html:');
+            console.log(indexContent.substring(0, 1000));
         }
     } catch (error) {
         console.error('Error updating history data:', error.message);
