@@ -15,7 +15,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        persist-credentials: false
+        persist-credentials: true
         
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -40,3 +40,5 @@ jobs:
         git reset -- node_modules
         git commit -m "chore: update market history data" || echo "No changes to commit"
         git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
