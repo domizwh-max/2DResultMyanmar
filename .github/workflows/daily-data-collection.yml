@@ -14,9 +14,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        persist-credentials: true
-        
+      
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -31,14 +29,5 @@ jobs:
       run: node .github/scripts/collect-market-data.js
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add -A
-        git reset -- node_modules
-        git commit -m "chore: update market history data" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_OWNER: ${{ github.repository_owner }}
