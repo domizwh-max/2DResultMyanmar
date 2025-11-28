@@ -882,7 +882,11 @@
                         lucky1201: "32",
                         set1630: "1,252.71",
                         value1630: "23,180.98",
-                        lucky1630: "10"
+                        lucky1630: "10",
+                        modern930: "--",
+                        internet930: "--",
+                        modern200: "--",
+                        internet200: "--"
                     }]
                 }
             };
@@ -968,7 +972,11 @@
                     lucky1201: isTodayHoliday ? "OFF" : twodFixData1El.textContent,
                     set1630: isTodayHoliday ? "OFF" : setFixData2El.textContent,
                     value1630: isTodayHoliday ? "OFF" : valueFixData2El.textContent,
-                    lucky1630: isTodayHoliday ? "OFF" : twodFixData2El.textContent
+                    lucky1630: isTodayHoliday ? "OFF" : twodFixData2El.textContent,
+                    modern930: isTodayHoliday ? "OFF" : modernData1El.textContent,
+                    internet930: isTodayHoliday ? "OFF" : internetData1El.textContent,
+                    modern200: isTodayHoliday ? "OFF" : modernData2El.textContent,
+                    internet200: isTodayHoliday ? "OFF" : internetData2El.textContent
                 });
                 
                 // Keep only last 5 entries per day to avoid excessive data
@@ -1019,7 +1027,11 @@
                     lucky1201: isTodayHoliday ? "OFF" : twodFixData1El.textContent,
                     set1630: isTodayHoliday ? "OFF" : setFixData2El.textContent,
                     value1630: isTodayHoliday ? "OFF" : valueFixData2El.textContent,
-                    lucky1630: isTodayHoliday ? "OFF" : twodFixData2El.textContent
+                    lucky1630: isTodayHoliday ? "OFF" : twodFixData2El.textContent,
+                    modern930: isTodayHoliday ? "OFF" : modernData1El.textContent,
+                    internet930: isTodayHoliday ? "OFF" : internetData1El.textContent,
+                    modern200: isTodayHoliday ? "OFF" : modernData2El.textContent,
+                    internet200: isTodayHoliday ? "OFF" : internetData2El.textContent
                 });
                 
                 // Keep only last 5 entries per day to avoid excessive data
@@ -1099,6 +1111,10 @@
                 html += '<th>4:30 PM SET</th>';
                 html += '<th>4:30 PM VALUE</th>';
                 html += '<th>4:30 PM 2D</th>';
+                html += '<th>9:30 AM Modern</th>';
+                html += '<th>9:30 AM Internet</th>';
+                html += '<th>2:00 PM Modern</th>';
+                html += '<th>2:00 PM Internet</th>';
                 html += '</tr></thead><tbody>';
                 
                 dayData.entries.forEach(entry => {
@@ -1110,6 +1126,10 @@
                     html += `<td>${entry.set1630}</td>`;
                     html += `<td>${entry.value1630}</td>`;
                     html += `<td>${entry.lucky1630}</td>`;
+                    html += `<td>${entry.modern930}</td>`;
+                    html += `<td>${entry.internet930}</td>`;
+                    html += `<td>${entry.modern200}</td>`;
+                    html += `<td>${entry.internet200}</td>`;
                     html += '</tr>';
                 });
                 
