@@ -701,10 +701,12 @@
             // Fetch data during market hours:
             // 1. 9:30 AM to 12:01 PM for first card
             // 2. 2:00 PM to 4:30 PM for second card
+            // 3. After 8:00 PM (static until restart)
             const isFirstSession = currentTime >= marketHours.morning.start && currentTime < marketHours.morning.end;
             const isSecondSession = currentTime >= marketHours.afternoon.start && currentTime < marketHours.afternoon.end;
+            const isAfterEightPM = currentTime >= 20; // 8:00 PM
             
-            return isFirstSession || isSecondSession;
+            return isFirstSession || isSecondSession || isAfterEightPM;
         }
         
         // Fetch real data for Modern Internet cards from mylucky2d3d.com
@@ -805,7 +807,7 @@
                     twodFixData2El.textContent = "10";
                 }
                 
-                // Fetch data for Modern Internet cards during market hours
+                // Fetch data for Modern Internet cards during market hours or after 8:00 PM
                 if (shouldFetchModernData(now)) {
                     fetchModernData();
                 }
@@ -1166,7 +1168,7 @@
                 twodFixData2El.textContent = pmLuckyData;
             }
             
-            // Fetch data for Modern Internet cards during market hours
+            // Fetch data for Modern Internet cards during market hours or after 8:00 PM
             if (shouldFetchModernData(now)) {
                 fetchModernData();
             }
