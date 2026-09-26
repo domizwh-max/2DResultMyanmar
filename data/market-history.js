@@ -1,4 +1,4 @@
-// Market history data updated at 2026-09-25T18:00:16.718Z
+// Market history data updated at 2026-09-26T17:18:21.183Z
 const marketHistoryData = {
   "27/11/2025": {
     "date": "27/11/2025",
@@ -4557,6 +4557,21 @@ const marketHistoryData = {
   "25/09/2026": {
     "date": "25/09/2026",
     "dayName": "Friday",
+    "entries": [
+      {
+        "time": "20:00:00",
+        "set1201": "1,261.23",
+        "value1201": "13,522.14",
+        "lucky1201": "32",
+        "set1630": "1,252.71",
+        "value1630": "23,180.98",
+        "lucky1630": "10"
+      }
+    ]
+  },
+  "26/09/2026": {
+    "date": "26/09/2026",
+    "dayName": "Saturday",
     "entries": [
       {
         "time": "20:00:00",
